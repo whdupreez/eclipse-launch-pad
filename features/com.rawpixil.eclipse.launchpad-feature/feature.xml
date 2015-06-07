@@ -6,7 +6,7 @@
       provider-name="RawPixil">
 
    <url>
-      <update label="Launch Pad" url="https://raw.githubusercontent.com/rawpixil/eclipse-launch-pad-site/master/"/>
+      <update label="Launch Pad" url="https://raw.githubusercontent.com/rawpixil/eclipse-launch-pad-site/master/site/"/>
       <discovery label="Eclipse Launch Pad Site" url="https://github.com/rawpixil/eclipse-launch-pad-site"/>
    </url>
 
