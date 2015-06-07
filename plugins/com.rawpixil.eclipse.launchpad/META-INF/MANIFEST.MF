@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Eclipse Launch Pad
+Bundle-SymbolicName: com.rawpixil.eclipse.launchpad;singleton:=true
+Bundle-Version: 0.0.1.qualifier
+Bundle-Activator: com.rawpixil.eclipse.launchpad.LaunchPadPlugin
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.ui.ide;bundle-version="3.6.2",
+ org.eclipse.core.runtime,
+ org.eclipse.debug.ui;bundle-version="3.5.1",
+ org.eclipse.help,
+ org.eclipse.ui.console;bundle-version="3.6.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: com.rawpixil.eclipse.launchpad;uses:="org.osgi.framework,org.eclipse.ui.plugin"
+Bundle-Vendor: RawPixil
