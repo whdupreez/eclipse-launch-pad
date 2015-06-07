@@ -18,6 +18,7 @@ import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -40,6 +41,7 @@ import com.rawpixil.eclipse.launchpad.internal.core.extended.filter.Predicates;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.function.Functions;
 import com.rawpixil.eclipse.launchpad.internal.message.Messages;
 import com.rawpixil.eclipse.launchpad.internal.ui.SWTFactory;
+import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelection;
 import com.rawpixil.eclipse.launchpad.internal.ui.launchpad.ExtendedLaunchConfigurationLabelProvider;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.functional.Functional;
@@ -53,8 +55,8 @@ public class OrganizeFavoritesDialog extends TrayDialog {
 
 	protected Button btnAddFavorite;
 	protected Button btnRemoveFavorites;
-	protected Button btnMoveUp;
-	protected Button btnMoveDown;
+//	protected Button btnMoveUp;
+//	protected Button btnMoveDown;
 
 	private List<IExtendedLaunchConfigurationWorkingCopy> copies;
 
@@ -68,12 +70,12 @@ public class OrganizeFavoritesDialog extends TrayDialog {
 			else if (button == btnRemoveFavorites) {
 				handleRemoveFavoritesButtonPressed();
 			}
-			else if (button == btnMoveUp) {
-				handleMoveUpButtonPressed();
-			}
-			else if (button == btnMoveDown) {
-				handleMoveDownButtonPressed();
-			}
+//			else if (button == btnMoveUp) {
+//				handleMoveUpButtonPressed();
+//			}
+//			else if (button == btnMoveDown) {
+//				handleMoveDownButtonPressed();
+//			}
 		}
 	};
 
@@ -127,14 +129,14 @@ public class OrganizeFavoritesDialog extends TrayDialog {
 	}
 
 	protected void handleRemoveFavoritesButtonPressed() {
-		// IStructuredSelection sel =
-		// (IStructuredSelection)getFavoritesTable().getSelection();
-		// Iterator<?> iter = sel.iterator();
-		// while (iter.hasNext()) {
-		// Object config = iter.next();
-		// getFavorites().remove(config);
-		// }
-		// getFavoritesTable().refresh();
+		StructuredSelection selection = new StructuredSelection((IStructuredSelection) getFavoritesTable().getSelection());
+		List<?> items = selection.selectedItems();
+		if (!items.isEmpty()) {
+			for (Object object : items) {
+				((IExtendedLaunchConfigurationWorkingCopy) object).setFavorite(false);
+			}
+			updateStatus();
+		}
 	}
 
 	protected void handleMoveUpButtonPressed() {
@@ -228,11 +230,11 @@ public class OrganizeFavoritesDialog extends TrayDialog {
 		btnRemoveFavorites = SWTFactory.createPushButton(buttons, Messages.organize_favorites_dialog_btn_remove, null);
 		btnRemoveFavorites.addSelectionListener(buttonPressedListener);
 
-		btnMoveUp = SWTFactory.createPushButton(buttons, Messages.organize_favorites_dialog_btn_up, null);
-		btnMoveUp.addSelectionListener(buttonPressedListener);
-
-		btnMoveDown = SWTFactory.createPushButton(buttons, Messages.organize_favorites_dialog_btn_down, null);
-		btnMoveDown.addSelectionListener(buttonPressedListener);
+//		btnMoveUp = SWTFactory.createPushButton(buttons, Messages.organize_favorites_dialog_btn_up, null);
+//		btnMoveUp.addSelectionListener(buttonPressedListener);
+//
+//		btnMoveDown = SWTFactory.createPushButton(buttons, Messages.organize_favorites_dialog_btn_down, null);
+//		btnMoveDown.addSelectionListener(buttonPressedListener);
 	}
 
 	/**

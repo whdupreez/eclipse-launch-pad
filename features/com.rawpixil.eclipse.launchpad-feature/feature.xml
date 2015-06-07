@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="com.rawpixil.eclipse.microservice"
-      label="Eclipse Microservice Tools"
+      id="com.rawpixil.eclipse.launchpad"
+      label="Launch Pad"
       version="0.0.1.qualifier"
       provider-name="RawPixil">
 
    <url>
-      <update label="Eclipse Microservice Tools" url="https://raw.githubusercontent.com/rawpixil/eclipse-microservice-tools/master/site/"/>
-      <discovery label="Eclipse Microservice Tools Homepage" url="https://github.com/rawpixil/eclipse-microservice-tools"/>
+      <update label="Launch Pad" url="https://raw.githubusercontent.com/rawpixil/eclipse-launch-pad-site/master/"/>
+      <discovery label="Eclipse Launch Pad Site" url="https://github.com/rawpixil/eclipse-launch-pad-site"/>
    </url>
 
    <plugin
-         id="com.rawpixil.eclipse.microservice"
+         id="com.rawpixil.eclipse.launchpad"
          download-size="0"
          install-size="0"
          version="0.0.0"
