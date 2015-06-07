@@ -22,25 +22,26 @@ import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.ui.part.ViewPart;
 
+import com.rawpixil.eclipse.launchpad.core.IExtendedLaunch;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfiguration;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationListener;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationRepository;
-import com.rawpixil.eclipse.launchpad.core.IExtendedLauncher;
+import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchesListener;
+import com.rawpixil.eclipse.launchpad.core.ILaunchPad;
 import com.rawpixil.eclipse.launchpad.core.IPredicate;
 import com.rawpixil.eclipse.launchpad.core.IPreferences;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfigurationRepositoryProvider;
-import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLauncherProvider;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPadProvider;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.filter.Predicates;
 import com.rawpixil.eclipse.launchpad.internal.core.preferences.Preference;
 import com.rawpixil.eclipse.launchpad.internal.core.preferences.PreferencesProvider;
-import com.rawpixil.eclipse.launchpad.internal.ui.IRefreshable;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelection;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelectionAction;
 import com.rawpixil.eclipse.launchpad.internal.util.Displays;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.Optional;
 
-public class LaunchPadView extends ViewPart implements IRefreshable {
+public class LaunchPadView extends ViewPart {
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -50,12 +51,12 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 	private TreeViewer viewer;
 	private LaunchPadViewContentProvider viewerContentProvider;
 
-	private IExtendedLauncher launcher;
+	private ILaunchPad launcher;
 	private IExtendedLaunchConfigurationRepository repository;
 
 	private IDoubleClickListener lstDoubleClick;
-	private IExtendedLaunchConfigurationListener lstRefreshView;
 	private IPropertyChangeListener lstPreferencesChange;
+	private RefreshViewListener lstRefreshView;
 
 	private Action aOrganizeFavorites;
 	private Action aFilterFavorites;
@@ -69,7 +70,7 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		this.launcher = ExtendedLauncherProvider.INSTANCE.get();
+		this.launcher = LaunchPadProvider.INSTANCE.get();
 		this.repository = ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get();
 
 		// Create the TreeViewer.
@@ -82,7 +83,7 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 		this.viewerContentProvider = new LaunchPadViewContentProvider(this.repository);
 		this.viewer.setContentProvider(this.viewerContentProvider);
 //		this.viewer.setLabelProvider(new ExtendedLaunchConfigurationLabelProvider());
-		this.viewer.setLabelProvider(new StyledExtendedLaunchConfigurationLabelProvider(this));
+		this.viewer.setLabelProvider(new StyledExtendedLaunchConfigurationLabelProvider());
 		this.viewer.setInput(this.getViewSite());
 //		viewer.addTreeListener(new ITreeViewerListener() {
 //			@Override
@@ -192,6 +193,7 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 	private void registerListeners() {
 		this.lstRefreshView = new RefreshViewListener();
 		this.repository.addExtendedLaunchConfigurationListener(this.lstRefreshView);
+		this.launcher.addExtendedLaunchesListener(this.lstRefreshView);
 		this.lstPreferencesChange = new PreferencesChangeListener();
 		PreferencesProvider.INSTANCE.get().addPropertyChangeListener(this.lstPreferencesChange);
 		this.viewer.addSelectionChangedListener(this.aLaunchAsDefaultGroup);
@@ -207,8 +209,7 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 		this.viewer.getControl().setFocus();
 	}
 
-	@Override
-	public void refresh() {
+	private void refresh() {
 		Displays.getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -228,6 +229,7 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 		}
 		this.lstDoubleClick = null;
 		this.repository.removeExtendedLaunchConfigurationListener(this.lstRefreshView);
+		this.launcher.removeExtendedLaunchesListener(this.lstRefreshView);
 		this.lstRefreshView = null;
 		PreferencesProvider.INSTANCE.get().removePropertyChangeListener(this.lstPreferencesChange);
 		this.lstPreferencesChange = null;
@@ -236,23 +238,47 @@ public class LaunchPadView extends ViewPart implements IRefreshable {
 		super.dispose();
 	}
 
-	private class RefreshViewListener implements IExtendedLaunchConfigurationListener {
+	private class RefreshViewListener implements IExtendedLaunchConfigurationListener, IExtendedLaunchesListener {
 
 		@Override
 		public void extendedLaunchConfigurationAdded(IExtendedLaunchConfiguration extended) {
-			Log.log("ViewLauncher.extendedLaunchConfigurationAdded");
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchConfigurationAdded");
 			LaunchPadView.this.refresh();
 		}
 
 		@Override
 		public void extendedLaunchConfigurationChanged(IExtendedLaunchConfiguration extended) {
-			Log.log("ViewLauncher.extendedLaunchConfigurationChanged");
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchConfigurationChanged");
 			LaunchPadView.this.refresh();
 		}
 
 		@Override
 		public void extendedLaunchConfigurationRemoved(IExtendedLaunchConfiguration extended) {
-			Log.log("ViewLauncher.extendedLaunchConfigurationRemoved");
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchConfigurationRemoved");
+			LaunchPadView.this.refresh();
+		}
+
+		@Override
+		public void extendedLaunchesAdded(List<IExtendedLaunch> launches) {
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.refresh();
+		}
+
+		@Override
+		public void extendedLaunchesChanged(List<IExtendedLaunch> launches) {
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.refresh();
+		}
+
+		@Override
+		public void extendedLaunchesTerminated(List<IExtendedLaunch> launches) {
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.refresh();
+		}
+
+		@Override
+		public void extendedLaunchesRemoved(List<IExtendedLaunch> launches) {
+			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
 			LaunchPadView.this.refresh();
 		}
 

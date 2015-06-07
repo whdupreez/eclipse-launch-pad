@@ -6,7 +6,7 @@ import org.eclipse.debug.ui.ILaunchGroup;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfiguration;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationWorkingCopy;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfigurationRepositoryProvider;
-import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLauncherProvider;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPadProvider;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelection;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelectionAction;
 import com.rawpixil.eclipse.launchpad.internal.util.ELF;
@@ -55,7 +55,7 @@ public class LaunchAction extends StructuredSelectionAction {
 				copy.setDefaultLaunchMode(Optional.of(this.mode));
 				ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get().save(copy);
 			}
-			ExtendedLauncherProvider.INSTANCE.get().launch(item.get());
+			LaunchPadProvider.INSTANCE.get().launch(item.get());
 		}
 	}
 

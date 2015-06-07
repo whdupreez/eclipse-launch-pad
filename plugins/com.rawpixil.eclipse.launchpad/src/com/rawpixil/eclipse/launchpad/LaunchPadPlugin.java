@@ -7,7 +7,7 @@ import org.osgi.framework.BundleContext;
 
 import com.rawpixil.eclipse.launchpad.core.IPluginState;
 import com.rawpixil.eclipse.launchpad.internal.core.PluginStateProvider;
-import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLauncherProvider;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPadProvider;
 
 /**
  * There is one instance of the launch pad plug-in available from
@@ -54,7 +54,7 @@ public class LaunchPadPlugin extends AbstractUIPlugin {
 		state.restore(saved);
 
 		// Instantiate all providers.
-		ExtendedLauncherProvider.INSTANCE.get();
+		LaunchPadProvider.INSTANCE.get();
 	}
 
 	@Override

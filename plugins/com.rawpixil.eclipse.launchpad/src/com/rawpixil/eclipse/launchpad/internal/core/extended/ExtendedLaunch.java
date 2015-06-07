@@ -28,13 +28,4 @@ public class ExtendedLaunch implements IExtendedLaunch {
 		return this.launch;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		// TODO improve
-		if (obj instanceof ExtendedLaunch) {
-			return this.launch.equals(((ExtendedLaunch) obj).launch);
-		}
-		return false;
-	}
-
 }

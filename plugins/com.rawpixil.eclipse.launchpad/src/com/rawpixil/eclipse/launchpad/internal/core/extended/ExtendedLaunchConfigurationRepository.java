@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -33,11 +34,11 @@ public class ExtendedLaunchConfigurationRepository implements IExtendedLaunchCon
 	private enum NotificationType { ADDED, CHANGED, REMOVED };
 
 	private List<IExtendedLaunchConfiguration> storage;
-	private List<IExtendedLaunchConfigurationListener> listeners;
+	private ListenerList listeners;
 
 	public ExtendedLaunchConfigurationRepository() {
 		this.storage = Collections.synchronizedList(new ArrayList<IExtendedLaunchConfiguration>());
-		this.listeners = Collections.synchronizedList(new ArrayList<IExtendedLaunchConfigurationListener>());
+		this.listeners = new ListenerList();
 
 		ELF.registerLaunchConfigurationListener(new LaunchConfigurationListener());
 	}
@@ -184,15 +185,10 @@ public class ExtendedLaunchConfigurationRepository implements IExtendedLaunchCon
 		public void notify(IExtendedLaunchConfiguration extended, NotificationType type) {
 			this.extended = extended;
 			this.type = type;
-			synchronized (ExtendedLaunchConfigurationRepository.this.listeners) {
-				if (ExtendedLaunchConfigurationRepository.this.listeners.size() > 0) {
-					Iterator<IExtendedLaunchConfigurationListener> i =
-							ExtendedLaunchConfigurationRepository.this.listeners.iterator();
-					while (i.hasNext()) {
-						this.listener = i.next();
-						SafeRunner.run(this);
-					}
-				}
+			Object[] listeners = ExtendedLaunchConfigurationRepository.this.listeners.getListeners();
+			for (Object object : listeners) {
+				this.listener = ((IExtendedLaunchConfigurationListener) object);
+				SafeRunner.run(this);
 			}
 			this.extended = null;
 			this.type = null;

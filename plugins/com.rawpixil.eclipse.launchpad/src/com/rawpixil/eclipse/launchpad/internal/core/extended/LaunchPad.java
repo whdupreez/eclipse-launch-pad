@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
@@ -18,8 +19,8 @@ import com.rawpixil.eclipse.launchpad.LaunchPadPlugin;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunch;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfiguration;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationRepository;
-import com.rawpixil.eclipse.launchpad.core.IExtendedLauncher;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchesListener;
+import com.rawpixil.eclipse.launchpad.core.ILaunchPad;
 import com.rawpixil.eclipse.launchpad.internal.message.Messages;
 import com.rawpixil.eclipse.launchpad.internal.util.Assert;
 import com.rawpixil.eclipse.launchpad.internal.util.Dialogs;
@@ -34,16 +35,19 @@ import com.rawpixil.eclipse.launchpad.internal.util.Optional;
  *
  */
 // TODO Remove listeners registered to framework
-public class ExtendedLauncher implements IExtendedLauncher {
+public class LaunchPad implements ILaunchPad {
 
 	private enum NotificationType { ADDED, CHANGED, TERMINATED, REMOVED };
 
 	private IExtendedLaunchConfigurationRepository repository;
-	private List<IExtendedLaunchesListener> listeners;
+	private ListenerList listeners;
+	private List<IExtendedLaunch> register;
 
-	public ExtendedLauncher() {
+	public LaunchPad() {
 		this.repository = ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get();
-		this.listeners = Collections.synchronizedList(new ArrayList<IExtendedLaunchesListener>());
+		this.listeners = new ListenerList();
+		this.register = Collections.synchronizedList(new ArrayList<IExtendedLaunch>());
+
 		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(new LaunchesListener());
 	}
 
@@ -58,6 +62,97 @@ public class ExtendedLauncher implements IExtendedLauncher {
 		else {
 			Dialogs.error(Messages.extended_launcher_error_cannot_launch_title,
 					Messages.extended_launcher_error_cannot_launch_description);
+		}
+	}
+
+	@Override
+	public List<IExtendedLaunch> getExtendedLaunches(IExtendedLaunchConfiguration extended) {
+		return Collections.unmodifiableList(this.findExtendedLaunches(extended));
+	}
+
+	private void handleLaunchesAdded(ILaunch[] launches) {
+		List<IExtendedLaunch> added = new ArrayList<IExtendedLaunch>();
+		synchronized (this.register) {
+			for (ILaunch launch : launches) {
+				final Optional<IExtendedLaunchConfiguration> config = LaunchPad.this.repository
+						.findByLaunchConfiguration(launch.getLaunchConfiguration());
+
+				if (config.isPresent()) {
+					Log.log("Config matched to launch!");
+					ExtendedLaunch extended = new ExtendedLaunch(config.get(), launch);
+					added.add(extended);
+				}
+				else {
+					Log.log("No config found for launch: " + launch.getLaunchConfiguration().getName());
+				}
+			}
+			this.register.addAll(added);
+		}
+		this.getNotifier().notify(added, NotificationType.ADDED);
+	}
+
+	private void handleLaunchesChanged(ILaunch[] launches) {
+		List<IExtendedLaunch> changed = this.findExtendedLaunches(launches);
+		if (!changed.isEmpty()) {
+			this.getNotifier().notify(changed, NotificationType.CHANGED);
+		}
+	}
+
+	private void handleLaunchesTerminated(ILaunch[] launches) {
+		List<IExtendedLaunch> terminated = this.findExtendedLaunches(launches);
+		if (!terminated.isEmpty()) {
+			this.getNotifier().notify(terminated, NotificationType.TERMINATED);
+		}
+	}
+
+	private void handleLaunchesRemoved(ILaunch[] launches) {
+		List<IExtendedLaunch> removed;
+		synchronized (this.register) {
+			removed = this.findExtendedLaunches(launches);
+			this.register.removeAll(removed);
+		}
+		if (!removed.isEmpty()) {
+			this.getNotifier().notify(removed, NotificationType.REMOVED);
+		}
+	}
+
+	private Optional<IExtendedLaunch> findExtendedLaunch(ILaunch launch) {
+		synchronized (this.register) {
+			Iterator<IExtendedLaunch> i = this.register.iterator();
+			while (i.hasNext()) {
+				IExtendedLaunch extended = i.next();
+				if (extended.getLaunch().equals(launch)) {
+					return Optional.of(extended);
+				}
+			}
+			return Optional.empty();
+		}
+	}
+
+	private List<IExtendedLaunch> findExtendedLaunches(ILaunch[] launches) {
+		synchronized (this.register) {
+			List<IExtendedLaunch> found = new ArrayList<IExtendedLaunch>();
+			for (ILaunch launch : launches) {
+				Optional<IExtendedLaunch> extended = this.findExtendedLaunch(launch);
+				if (extended.isPresent()) {
+					found.add(extended.get());
+				}
+			}
+			return found;
+		}
+	}
+
+	private List<IExtendedLaunch> findExtendedLaunches(IExtendedLaunchConfiguration extended) {
+		synchronized (this.register) {
+			List<IExtendedLaunch> found = new ArrayList<IExtendedLaunch>();
+			Iterator<IExtendedLaunch> i = this.register.iterator();
+			while (i.hasNext()) {
+				IExtendedLaunch launch = i.next();
+				if (launch.getExtendedLaunchConfiguration().equals(extended)) {
+					found.add(launch);
+				}
+			}
+			return found;
 		}
 	}
 
@@ -79,47 +174,26 @@ public class ExtendedLauncher implements IExtendedLauncher {
 
 		@Override
 		public void launchesAdded(ILaunch[] launches) {
-			Log.log("ExtendedLauncher.launchesAdded");
-			this.propagateNotification(launches, NotificationType.ADDED);
+			Log.log("LaunchPad.LaunchesListener.launchesAdded");
+			LaunchPad.this.handleLaunchesAdded(launches);
 		}
 
 		@Override
 		public void launchesChanged(ILaunch[] launches) {
-			Log.log("ExtendedLauncher.launchesChanged");
-			this.propagateNotification(launches, NotificationType.CHANGED);
+			Log.log("LaunchPad.LaunchesListener.launchesChanged");
+			LaunchPad.this.handleLaunchesChanged(launches);
 		}
 
 		@Override
 		public void launchesTerminated(ILaunch[] launches) {
-			Log.log("ExtendedLauncher.launchesTerminated");
-			this.propagateNotification(launches, NotificationType.TERMINATED);
+			Log.log("LaunchPad.LaunchesListener.launchesTerminated");
+			LaunchPad.this.handleLaunchesTerminated(launches);
 		}
 
 		@Override
 		public void launchesRemoved(ILaunch[] launches) {
-			Log.log("ExtendedLauncher.launchesRemoved");
-			this.propagateNotification(launches, NotificationType.REMOVED);
-		}
-
-		private void propagateNotification(ILaunch[] launches, NotificationType type) {
-			synchronized (ExtendedLauncher.this.listeners) {
-				List<IExtendedLaunch> matched = new ArrayList<IExtendedLaunch>();
-				for (ILaunch added : launches) {
-					final Optional<IExtendedLaunchConfiguration> config = ExtendedLauncher.this.repository
-							.findByLaunchConfiguration(added.getLaunchConfiguration());
-
-					if (config.isPresent()) {
-						Log.log("Config matched to launch!");
-						ExtendedLaunch extended = new ExtendedLaunch(config.get(), added);
-						matched.add(extended);
-					}
-					else {
-						Log.log("No config :(");
-					}
-				}
-				// Must be notified in the synchronized block.
-				ExtendedLauncher.this.getNotifier().notify(matched, type);
-			}
+			Log.log("LaunchPad.LaunchesListener.launchesRemoved");
+			LaunchPad.this.handleLaunchesRemoved(launches);
 		}
 
 	}
@@ -149,15 +223,11 @@ public class ExtendedLauncher implements IExtendedLauncher {
 		public void notify(List<IExtendedLaunch> launches, NotificationType type) {
 			this.launches = Collections.unmodifiableList(launches);
 			this.type = type;
-//			synchronized (ExtendedLauncher.this.listeners) {
-				if (ExtendedLauncher.this.listeners.size() > 0) {
-					Iterator<IExtendedLaunchesListener> i = ExtendedLauncher.this.listeners.iterator();
-					while (i.hasNext()) {
-						this.listener = i.next();
-						SafeRunner.run(this);
-					}
-				}
-//			}
+			Object[] listeners = LaunchPad.this.listeners.getListeners();
+			for (Object listener : listeners) {
+				this.listener = ((IExtendedLaunchesListener) listener);
+				SafeRunner.run(this);
+			}
 			this.launches = null;
 			this.type = null;
 			this.listener = null;
