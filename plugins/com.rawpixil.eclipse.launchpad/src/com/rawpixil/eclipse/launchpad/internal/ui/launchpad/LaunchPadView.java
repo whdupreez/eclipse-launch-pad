@@ -62,6 +62,8 @@ public class LaunchPadView extends ViewPart {
 	private Action aFilterFavorites;
 	private StructuredSelectionAction aDeleteLaunchConfigurations;
 	private StructuredSelectionAction aRenameLaunchConfiguration;
+	private StructuredSelectionAction aTerminateLaunch;
+	private StructuredSelectionAction aTerminateAndRelaunch;
 	private StructuredSelectionAction aLaunchAsDefaultGroup;
 	private List<StructuredSelectionAction> aLaunchAsGroup;
 
@@ -117,6 +119,8 @@ public class LaunchPadView extends ViewPart {
 	private void makeActions() {
 		this.aDeleteLaunchConfigurations = new DeleteLaunchConfigurationsAction();
 		this.aRenameLaunchConfiguration = new RenameLaunchConfigurationAction();
+		this.aTerminateLaunch = new TerminateLaunchAction();
+		this.aTerminateAndRelaunch = new TerminateAndRelaunchAction();
 		this.aLaunchAsDefaultGroup = new DefaultLaunchAction();
 		this.aOrganizeFavorites = new OrganizeFavoritesAction();
 		this.aFilterFavorites = new FilterFavoritesAction();
@@ -184,6 +188,9 @@ public class LaunchPadView extends ViewPart {
 			manager.add(action);
 		}
 		manager.add(new Separator());
+		manager.add(this.aTerminateLaunch);
+		manager.add(this.aTerminateAndRelaunch);
+		manager.add(new Separator());
 		manager.add(this.aFilterFavorites);
 //		manager.add(action2);
 		manager.add(new Separator());
@@ -199,6 +206,8 @@ public class LaunchPadView extends ViewPart {
 		this.viewer.addSelectionChangedListener(this.aLaunchAsDefaultGroup);
 		this.viewer.addSelectionChangedListener(this.aDeleteLaunchConfigurations);
 		this.viewer.addSelectionChangedListener(this.aRenameLaunchConfiguration);
+		this.viewer.addSelectionChangedListener(this.aTerminateLaunch);
+		this.viewer.addSelectionChangedListener(this.aTerminateAndRelaunch);
 		for (StructuredSelectionAction action : this.aLaunchAsGroup) {
 			this.viewer.addSelectionChangedListener(action);
 		}
@@ -224,6 +233,8 @@ public class LaunchPadView extends ViewPart {
 		this.viewer.removeSelectionChangedListener(this.aLaunchAsDefaultGroup);
 		this.viewer.removeSelectionChangedListener(this.aDeleteLaunchConfigurations);
 		this.viewer.removeSelectionChangedListener(this.aRenameLaunchConfiguration);
+		this.viewer.removeSelectionChangedListener(this.aTerminateLaunch);
+		this.viewer.removeSelectionChangedListener(this.aTerminateAndRelaunch);
 		for (StructuredSelectionAction action : this.aLaunchAsGroup) {
 			this.viewer.removeSelectionChangedListener(action);
 		}
@@ -261,18 +272,23 @@ public class LaunchPadView extends ViewPart {
 		@Override
 		public void extendedLaunchesAdded(List<IExtendedLaunch> launches) {
 			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.aTerminateLaunch.refresh();
 			LaunchPadView.this.refresh();
 		}
 
 		@Override
 		public void extendedLaunchesChanged(List<IExtendedLaunch> launches) {
 			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.aTerminateLaunch.refresh();
+			LaunchPadView.this.aTerminateAndRelaunch.refresh();
 			LaunchPadView.this.refresh();
 		}
 
 		@Override
 		public void extendedLaunchesTerminated(List<IExtendedLaunch> launches) {
 			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchesAdded");
+			LaunchPadView.this.aTerminateLaunch.refresh();
+			LaunchPadView.this.aTerminateAndRelaunch.refresh();
 			LaunchPadView.this.refresh();
 		}
 

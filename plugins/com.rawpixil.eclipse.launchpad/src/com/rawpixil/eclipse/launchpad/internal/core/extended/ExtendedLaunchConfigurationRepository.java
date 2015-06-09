@@ -33,6 +33,7 @@ public class ExtendedLaunchConfigurationRepository implements IExtendedLaunchCon
 
 	private enum NotificationType { ADDED, CHANGED, REMOVED };
 
+	private LaunchConfigurationListener launchListener;
 	private List<IExtendedLaunchConfiguration> storage;
 	private ListenerList listeners;
 
@@ -40,7 +41,8 @@ public class ExtendedLaunchConfigurationRepository implements IExtendedLaunchCon
 		this.storage = Collections.synchronizedList(new ArrayList<IExtendedLaunchConfiguration>());
 		this.listeners = new ListenerList();
 
-		ELF.registerLaunchConfigurationListener(new LaunchConfigurationListener());
+		this.launchListener = new LaunchConfigurationListener();
+		ELF.addLaunchConfigurationListener(this.launchListener);
 	}
 
 	@Override
@@ -116,6 +118,15 @@ public class ExtendedLaunchConfigurationRepository implements IExtendedLaunchCon
 
 	private ConfigurationNotifier getNotifier() {
 		return new ConfigurationNotifier();
+	}
+
+	public void dispose() {
+		ELF.addLaunchConfigurationListener(this.launchListener);
+		this.launchListener = null;
+		this.listeners.clear();
+		this.listeners = null;
+		this.storage.clear();
+		this.storage = null;
 	}
 
 	private class LaunchConfigurationListener implements ILaunchConfigurationListener {

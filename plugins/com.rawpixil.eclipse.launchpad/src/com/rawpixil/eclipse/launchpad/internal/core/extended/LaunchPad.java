@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener2;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
 
 import com.rawpixil.eclipse.launchpad.LaunchPadPlugin;
@@ -21,11 +22,13 @@ import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfiguration;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationRepository;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchesListener;
 import com.rawpixil.eclipse.launchpad.core.ILaunchPad;
+import com.rawpixil.eclipse.launchpad.core.IPredicate;
 import com.rawpixil.eclipse.launchpad.internal.message.Messages;
 import com.rawpixil.eclipse.launchpad.internal.util.Assert;
 import com.rawpixil.eclipse.launchpad.internal.util.Dialogs;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.Optional;
+import com.rawpixil.eclipse.launchpad.internal.util.functional.Functional;
 
 /**
  * Acts as a bridge that attaches an extended launch configuration to the launch
@@ -34,11 +37,11 @@ import com.rawpixil.eclipse.launchpad.internal.util.Optional;
  * @author Willy du Preez
  *
  */
-// TODO Remove listeners registered to framework
 public class LaunchPad implements ILaunchPad {
 
 	private enum NotificationType { ADDED, CHANGED, TERMINATED, REMOVED };
 
+	private LaunchesListener launchesListener;
 	private IExtendedLaunchConfigurationRepository repository;
 	private ListenerList listeners;
 	private List<IExtendedLaunch> register;
@@ -48,7 +51,8 @@ public class LaunchPad implements ILaunchPad {
 		this.listeners = new ListenerList();
 		this.register = Collections.synchronizedList(new ArrayList<IExtendedLaunch>());
 
-		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(new LaunchesListener());
+		this.launchesListener = new LaunchesListener();
+		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this.launchesListener);
 	}
 
 	@Override
@@ -68,6 +72,36 @@ public class LaunchPad implements ILaunchPad {
 	@Override
 	public List<IExtendedLaunch> getExtendedLaunches(IExtendedLaunchConfiguration extended) {
 		return Collections.unmodifiableList(this.findExtendedLaunches(extended));
+	}
+
+	@Override
+	public List<IExtendedLaunch> getExtendedLaunches(IExtendedLaunchConfiguration extended, boolean includeTerminated) {
+		if (includeTerminated) {
+			return this.getExtendedLaunches(extended);
+		}
+		else {
+			return Functional.filter(this.getExtendedLaunches(extended), new IPredicate<IExtendedLaunch>() {
+				@Override
+				public boolean test(IExtendedLaunch t) {
+					return !t.getLaunch().isTerminated();
+				}
+
+			});
+		}
+	}
+
+	@Override
+	public List<IProcess> getProcesses(IExtendedLaunchConfiguration extended) {
+		List<IProcess> processes = new ArrayList<IProcess>();
+		for (IExtendedLaunch launch : this.getExtendedLaunches(extended, false)) {
+			Collections.addAll(processes, launch.getLaunch().getProcesses());
+		}
+		return Functional.filter(processes, new IPredicate<IProcess>() {
+			@Override
+			public boolean test(IProcess t) {
+				return !t.isTerminated();
+			}
+		});
 	}
 
 	private void handleLaunchesAdded(ILaunch[] launches) {
@@ -168,6 +202,16 @@ public class LaunchPad implements ILaunchPad {
 
 	private ExtendedLaunchesNotifier getNotifier() {
 		return new ExtendedLaunchesNotifier();
+	}
+
+	public void dispose() {
+		DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this.launchesListener);
+		this.launchesListener = null;
+		this.repository = null;
+		this.listeners.clear();
+		this.listeners = null;
+		this.register.clear();
+		this.register = null;
 	}
 
 	private class LaunchesListener implements ILaunchesListener2 {

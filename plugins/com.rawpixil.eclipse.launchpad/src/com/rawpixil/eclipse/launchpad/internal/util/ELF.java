@@ -101,8 +101,19 @@ public class ELF {
 	 *
 	 * @param listener the listener to register
 	 */
-	public static void registerLaunchConfigurationListener(ILaunchConfigurationListener listener) {
+	public static void addLaunchConfigurationListener(ILaunchConfigurationListener listener) {
 		DebugPlugin.getDefault().getLaunchManager().addLaunchConfigurationListener(listener);;
+	}
+
+	/**
+	 * Unregisters the listener with the {@link ILaunchManager}.
+	 *
+	 * @see ILaunchManager#removeLaunchConfigurationListener(ILaunchesListener)
+	 *
+	 * @param listener the listener to remove
+	 */
+	public static void removeLaunchConfigurationListener(ILaunchConfigurationListener listener) {
+		DebugPlugin.getDefault().getLaunchManager().removeLaunchConfigurationListener(listener);;
 	}
 
 	/**

@@ -46,6 +46,16 @@ public class Messages {
 	public static String extended_launcher_error_cannot_launch_description;
 
 	/* -------------------------------------------------------------
+	 *  Terminate launch
+	 * ------------------------------------------------------------- */
+
+	public static String terminate_launch_action;
+	public static String terminate_launch_dialog_error_title;
+	public static String terminate_launch_dialog_error_description;
+
+	public static String terminate_and_relaunch_action;
+
+	/* -------------------------------------------------------------
 	 *  Common
 	 * ------------------------------------------------------------- */
 

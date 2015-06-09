@@ -7,6 +7,9 @@ import org.osgi.framework.BundleContext;
 
 import com.rawpixil.eclipse.launchpad.core.IPluginState;
 import com.rawpixil.eclipse.launchpad.internal.core.PluginStateProvider;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfigurationRepository;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfigurationRepositoryProvider;
+import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPad;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPadProvider;
 
 /**
@@ -65,6 +68,10 @@ public class LaunchPadPlugin extends AbstractUIPlugin {
 		if (ResourcesPlugin.getWorkspace() != null) {
 			ResourcesPlugin.getWorkspace().removeSaveParticipant(PLUGIN_ID);
 		}
+
+		// Dispose of all providers.
+		((LaunchPad) LaunchPadProvider.INSTANCE.get()).dispose();
+		((ExtendedLaunchConfigurationRepository) ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get()).dispose();
 	}
 
 }

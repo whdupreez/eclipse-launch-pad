@@ -22,6 +22,8 @@ public final class Images {
 
 	public static final String ICON_INVALID_CONFIGURATION = "invalid_build_tool.gif";
 
+	public static final String ICON_TERMINATE_AND_RELAUNCH = "term_restart.gif";
+
 	private static final String ICON_PATH = "icons/";
 
 	private static final String MISSING_IMAGE = "_missing";
