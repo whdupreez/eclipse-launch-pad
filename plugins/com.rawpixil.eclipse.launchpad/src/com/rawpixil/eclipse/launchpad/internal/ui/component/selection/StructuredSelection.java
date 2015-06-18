@@ -1,5 +1,6 @@
 package com.rawpixil.eclipse.launchpad.internal.ui.component.selection;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,7 +53,7 @@ public class StructuredSelection {
 		return this.items.size() > 1;
 	}
 
-	public boolean containsMultipleItemsOfSameType(Class<?> type) {
+	public boolean containsMultipleItemsOfType(Class<?> type) {
 		Assert.notNull(type, "Type cannot be null");
 		if (!this.containsMultipleItems()) {
 			return false;
@@ -65,14 +66,50 @@ public class StructuredSelection {
 		return true;
 	}
 
+	public boolean containsOnlyItemsOfType(Class<?> type) {
+		Assert.notNull(type, "Type cannot be null");
+		if (this.isEmpty()) {
+			return false;
+		}
+		for (Object item : this.items) {
+			if (!type.isAssignableFrom(item.getClass())) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public <T> Optional<List<T>> getMultipleItemsOfType(Class<T> type) {
 		Assert.notNull(type, "Type cannot be null");
-		if (this.containsMultipleItemsOfSameType(type)) {
+		if (this.containsMultipleItemsOfType(type)) {
 			@SuppressWarnings("unchecked")
 			Optional<List<T>> selected = Optional.of((List<T>) selectedItems());
 			return selected;
 		}
 		return Optional.empty();
+	}
+
+	public <T> Optional<List<T>> getOnlyItemsOfType(Class<T> type) {
+		Assert.notNull(type, "Type cannot be null");
+		if (this.containsOnlyItemsOfType(type)) {
+			@SuppressWarnings("unchecked")
+			Optional<List<T>> selected = Optional.of((List<T>) selectedItems());
+			return selected;
+		}
+		return Optional.empty();
+	}
+
+	public <T> List<T> getItemsOfType(Class<T> type) {
+		Assert.notNull(type, "Type cannot be null");
+		List<T> matched = new ArrayList<T>();
+		if (!this.isEmpty()) {
+			for (Object item : this.items) {
+				if (type.isAssignableFrom(item.getClass())) {
+					matched.add(type.cast(item));
+				}
+			}
+		}
+		return matched;
 	}
 
 	public List<?> selectedItems() {

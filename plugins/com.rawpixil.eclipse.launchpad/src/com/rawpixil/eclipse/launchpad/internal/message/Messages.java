@@ -21,7 +21,7 @@ public class Messages {
 	public static String rename_launch_configuration_error_invalid;
 
 	/* -------------------------------------------------------------
-	 *  Organize Favorites
+	 *  Favorites
 	 * ------------------------------------------------------------- */
 
 	public static String organize_favorites_action;
@@ -37,6 +37,10 @@ public class Messages {
 	public static String organize_favorites_select_dialog_label;
 	public static String organize_favorites_select_dialog_add_btn;
 	public static String organize_favorites_save_message;
+
+	public static String add_to_favorites_action;
+
+	public static String remove_from_favorites_action;
 
 	/* -------------------------------------------------------------
 	 *  Extended launcher

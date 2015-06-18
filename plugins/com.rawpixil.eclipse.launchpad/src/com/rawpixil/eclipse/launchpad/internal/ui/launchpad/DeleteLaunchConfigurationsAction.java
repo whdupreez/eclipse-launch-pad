@@ -31,7 +31,7 @@ public class DeleteLaunchConfigurationsAction extends StructuredSelectionAction 
 		if (selection.containsSingleItemOfType(IExtendedLaunchConfiguration.class)) {
 			this.deleteLaunchConfiguration(selection.getSingleItemOfType(IExtendedLaunchConfiguration.class).get());
 		}
-		else if (selection.containsMultipleItemsOfSameType(IExtendedLaunchConfiguration.class)) {
+		else if (selection.containsMultipleItemsOfType(IExtendedLaunchConfiguration.class)) {
 			this.deleteLaunchConfigurations(selection.getMultipleItemsOfType(IExtendedLaunchConfiguration.class).get());
 		}
 	}
@@ -39,7 +39,7 @@ public class DeleteLaunchConfigurationsAction extends StructuredSelectionAction 
 	@Override
 	protected void handleSelectionChanged(Optional<StructuredSelection> selection) {
 		this.setEnabled(selection.isPresent() &&
-				(selection.get().containsMultipleItemsOfSameType(IExtendedLaunchConfiguration.class)
+				(selection.get().containsMultipleItemsOfType(IExtendedLaunchConfiguration.class)
 						|| selection.get().containsSingleItemOfType(IExtendedLaunchConfiguration.class)));
 	}
 

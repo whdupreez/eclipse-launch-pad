@@ -61,6 +61,8 @@ public class LaunchPadView extends ViewPart {
 
 	private Action aOrganizeFavorites;
 	private Action aFilterFavorites;
+	private StructuredSelectionAction aAddToFavorites;
+	private StructuredSelectionAction aRemoveFromFavorites;
 	private StructuredSelectionAction aDeleteLaunchConfigurations;
 	private StructuredSelectionAction aRenameLaunchConfiguration;
 	private StructuredSelectionAction aTerminateLaunch;
@@ -125,7 +127,9 @@ public class LaunchPadView extends ViewPart {
 		this.aLaunchAsDefaultGroup = new DefaultLaunchAction();
 		this.aOrganizeFavorites = new OrganizeFavoritesAction();
 		this.aFilterFavorites = new FilterFavoritesAction();
-		this.aLaunchAsGroup = LaunchActionFactory.actions();
+		this.aAddToFavorites = new AddToFavoritesAction();
+		this.aRemoveFromFavorites = new RemoveFromFavoritesAction();
+		this.aLaunchAsGroup = LaunchAction.createAllAvailable();
 	}
 
 	private void hookContextMenu() {
@@ -147,13 +151,12 @@ public class LaunchPadView extends ViewPart {
 		// Duplication warranted by ease of comprehension
 		// of what the menu will look like for different
 		// item selections.
-		if (selection.containsSingleItemOfType(IExtendedLaunchConfiguration.class)) {
+		if (selection.containsOnlyItemsOfType(IExtendedLaunchConfiguration.class)) {
 			manager.add(this.aRenameLaunchConfiguration);
 			manager.add(this.aDeleteLaunchConfigurations);
-		}
-		else if (selection.containsMultipleItemsOfSameType(IExtendedLaunchConfiguration.class)) {
-			manager.add(this.aRenameLaunchConfiguration);
-			manager.add(this.aDeleteLaunchConfigurations);
+			manager.add(new Separator());
+			manager.add(this.aAddToFavorites);
+			manager.add(this.aRemoveFromFavorites);
 		}
 //		manager.add(new Separator());
 //		drillDownAdapter.addNavigationActions(manager);
@@ -204,6 +207,8 @@ public class LaunchPadView extends ViewPart {
 		this.launchpad.addExtendedLaunchesListener(this.lstRefreshView);
 		this.lstPreferencesChange = new PreferencesChangeListener();
 		PreferencesProvider.INSTANCE.get().addPropertyChangeListener(this.lstPreferencesChange);
+		this.viewer.addSelectionChangedListener(this.aAddToFavorites);
+		this.viewer.addSelectionChangedListener(this.aRemoveFromFavorites);
 		this.viewer.addSelectionChangedListener(this.aLaunchAsDefaultGroup);
 		this.viewer.addSelectionChangedListener(this.aDeleteLaunchConfigurations);
 		this.viewer.addSelectionChangedListener(this.aRenameLaunchConfiguration);
@@ -231,6 +236,8 @@ public class LaunchPadView extends ViewPart {
 	@Override
 	public void dispose() {
 		this.viewer.removeDoubleClickListener(this.lstDoubleClick);
+		this.viewer.removeSelectionChangedListener(this.aAddToFavorites);
+		this.viewer.removeSelectionChangedListener(this.aRemoveFromFavorites);
 		this.viewer.removeSelectionChangedListener(this.aLaunchAsDefaultGroup);
 		this.viewer.removeSelectionChangedListener(this.aDeleteLaunchConfigurations);
 		this.viewer.removeSelectionChangedListener(this.aRenameLaunchConfiguration);
@@ -261,6 +268,8 @@ public class LaunchPadView extends ViewPart {
 		@Override
 		public void extendedLaunchConfigurationChanged(IExtendedLaunchConfiguration extended) {
 			Log.log("LaunchPadView.RefreshViewListener.extendedLaunchConfigurationChanged");
+			LaunchPadView.this.aAddToFavorites.refresh();
+			LaunchPadView.this.aRemoveFromFavorites.refresh();
 			LaunchPadView.this.refresh();
 		}
 
