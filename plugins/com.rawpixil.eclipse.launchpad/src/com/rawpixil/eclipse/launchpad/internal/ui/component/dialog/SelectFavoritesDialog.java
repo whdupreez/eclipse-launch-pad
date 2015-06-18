@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.rawpixil.eclipse.launchpad.core.IExtendedLaunchConfigurationWorkingCopy;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.filter.Predicates;
 import com.rawpixil.eclipse.launchpad.internal.message.Messages;
-import com.rawpixil.eclipse.launchpad.internal.ui.launchpad.ExtendedLaunchConfigurationLabelProvider;
+import com.rawpixil.eclipse.launchpad.internal.ui.presentation.LaunchPadModelPresentationProvider;
 import com.rawpixil.eclipse.launchpad.internal.util.Assert;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.functional.Functional;
@@ -91,7 +91,7 @@ public class SelectFavoritesDialog extends AbstractCheckboxSelectionDialog {
 
 	@Override
 	protected IBaseLabelProvider getLabelProvider() {
-		return new ExtendedLaunchConfigurationLabelProvider();
+		return new FavoritesLabelProvider(LaunchPadModelPresentationProvider.INSTANCE.get());
 	}
 
 	@Override

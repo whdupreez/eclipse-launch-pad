@@ -37,6 +37,7 @@ import com.rawpixil.eclipse.launchpad.internal.core.preferences.Preference;
 import com.rawpixil.eclipse.launchpad.internal.core.preferences.PreferencesProvider;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelection;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelectionAction;
+import com.rawpixil.eclipse.launchpad.internal.ui.presentation.LaunchPadModelPresentationProvider;
 import com.rawpixil.eclipse.launchpad.internal.util.Displays;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.Optional;
@@ -51,7 +52,7 @@ public class LaunchPadView extends ViewPart {
 	private TreeViewer viewer;
 	private LaunchPadViewContentProvider viewerContentProvider;
 
-	private ILaunchPad launcher;
+	private ILaunchPad launchpad;
 	private IExtendedLaunchConfigurationRepository repository;
 
 	private IDoubleClickListener lstDoubleClick;
@@ -72,7 +73,7 @@ public class LaunchPadView extends ViewPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		this.launcher = LaunchPadProvider.INSTANCE.get();
+		this.launchpad = LaunchPadProvider.INSTANCE.get();
 		this.repository = ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get();
 
 		// Create the TreeViewer.
@@ -82,10 +83,10 @@ public class LaunchPadView extends ViewPart {
 		this.viewer = tree.getViewer();
 
 		// Configure the TreeViewer.
-		this.viewerContentProvider = new LaunchPadViewContentProvider(this.repository);
+		this.viewerContentProvider = new LaunchPadViewContentProvider(this.repository, this.launchpad);
 		this.viewer.setContentProvider(this.viewerContentProvider);
 //		this.viewer.setLabelProvider(new ExtendedLaunchConfigurationLabelProvider());
-		this.viewer.setLabelProvider(new StyledExtendedLaunchConfigurationLabelProvider());
+		this.viewer.setLabelProvider(new LaunchPadViewLabelProvider(LaunchPadModelPresentationProvider.INSTANCE.get()));
 		this.viewer.setInput(this.getViewSite());
 //		viewer.addTreeListener(new ITreeViewerListener() {
 //			@Override
@@ -200,7 +201,7 @@ public class LaunchPadView extends ViewPart {
 	private void registerListeners() {
 		this.lstRefreshView = new RefreshViewListener();
 		this.repository.addExtendedLaunchConfigurationListener(this.lstRefreshView);
-		this.launcher.addExtendedLaunchesListener(this.lstRefreshView);
+		this.launchpad.addExtendedLaunchesListener(this.lstRefreshView);
 		this.lstPreferencesChange = new PreferencesChangeListener();
 		PreferencesProvider.INSTANCE.get().addPropertyChangeListener(this.lstPreferencesChange);
 		this.viewer.addSelectionChangedListener(this.aLaunchAsDefaultGroup);
@@ -240,12 +241,12 @@ public class LaunchPadView extends ViewPart {
 		}
 		this.lstDoubleClick = null;
 		this.repository.removeExtendedLaunchConfigurationListener(this.lstRefreshView);
-		this.launcher.removeExtendedLaunchesListener(this.lstRefreshView);
+		this.launchpad.removeExtendedLaunchesListener(this.lstRefreshView);
 		this.lstRefreshView = null;
 		PreferencesProvider.INSTANCE.get().removePropertyChangeListener(this.lstPreferencesChange);
 		this.lstPreferencesChange = null;
 		this.repository = null;
-		this.launcher = null;
+		this.launchpad = null;
 		super.dispose();
 	}
 

@@ -7,7 +7,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import com.rawpixil.eclipse.launchpad.internal.util.Assert;
 import com.rawpixil.eclipse.launchpad.internal.util.Optional;
 
-// TODO Generalize and utilize
 public class StructuredSelection {
 
 	private IStructuredSelection selection;

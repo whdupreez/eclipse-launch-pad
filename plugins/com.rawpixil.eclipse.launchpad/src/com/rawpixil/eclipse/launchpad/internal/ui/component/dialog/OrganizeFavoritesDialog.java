@@ -42,7 +42,7 @@ import com.rawpixil.eclipse.launchpad.internal.core.extended.function.Functions;
 import com.rawpixil.eclipse.launchpad.internal.message.Messages;
 import com.rawpixil.eclipse.launchpad.internal.ui.SWTFactory;
 import com.rawpixil.eclipse.launchpad.internal.ui.component.selection.StructuredSelection;
-import com.rawpixil.eclipse.launchpad.internal.ui.launchpad.ExtendedLaunchConfigurationLabelProvider;
+import com.rawpixil.eclipse.launchpad.internal.ui.presentation.LaunchPadModelPresentationProvider;
 import com.rawpixil.eclipse.launchpad.internal.util.Log;
 import com.rawpixil.eclipse.launchpad.internal.util.functional.Functional;
 
@@ -242,7 +242,7 @@ public class OrganizeFavoritesDialog extends TrayDialog {
 	 */
 	private TableViewer createTable(Composite parent, IContentProvider contentProvider) {
 		TableViewer tableViewer = new TableViewer(parent, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
-		tableViewer.setLabelProvider(new ExtendedLaunchConfigurationLabelProvider());
+		tableViewer.setLabelProvider(new FavoritesLabelProvider(LaunchPadModelPresentationProvider.INSTANCE.get()));
 		tableViewer.setContentProvider(contentProvider);
 		tableViewer.setInput("!!!!!!! one more ");
 		GridData gd = new GridData(GridData.FILL_BOTH);

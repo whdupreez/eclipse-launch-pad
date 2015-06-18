@@ -11,6 +11,8 @@ import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfi
 import com.rawpixil.eclipse.launchpad.internal.core.extended.ExtendedLaunchConfigurationRepositoryProvider;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPad;
 import com.rawpixil.eclipse.launchpad.internal.core.extended.LaunchPadProvider;
+import com.rawpixil.eclipse.launchpad.internal.ui.presentation.LaunchPadModelPresentation;
+import com.rawpixil.eclipse.launchpad.internal.ui.presentation.LaunchPadModelPresentationProvider;
 
 /**
  * There is one instance of the launch pad plug-in available from
@@ -72,6 +74,7 @@ public class LaunchPadPlugin extends AbstractUIPlugin {
 		// Dispose of all providers.
 		((LaunchPad) LaunchPadProvider.INSTANCE.get()).dispose();
 		((ExtendedLaunchConfigurationRepository) ExtendedLaunchConfigurationRepositoryProvider.INSTANCE.get()).dispose();
+		LaunchPadModelPresentationProvider.INSTANCE.dispose();
 	}
 
 }
